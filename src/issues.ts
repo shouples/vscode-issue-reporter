@@ -35,12 +35,34 @@ export function getIssueContext() {
 }
 
 export async function issueReporterCommand(context?: Record<string, any>): Promise<void> {
+  // gather any context set by the rest of the extension
   const issueContext: Record<string, any> = getIssueContext().data;
-  const extensionData: string = JSON.stringify(issueContext, null, 2);
+  // format to a markdown table
+  const markdown = `
+---
+
+<details open="true">
+<summary>Extension Data</summary>
+
+${recordToMarkdown(issueContext)}
+
+</details>
+
+---
+`;
   commands.executeCommand("vscode.openIssueReporter", {
     extensionId: "shouples-dev.vscode-issue-reporter",
     issueTitle: "Issue title",
     issueBody: "Issue body",
-    extensionData: `<details><summary>Extension Data</summary><pre>${extensionData}</pre></details>`,
+    extensionData: markdown,
   });
+}
+
+function recordToMarkdown(record: Record<string, any>): string {
+  let table = "| Key | Value |\n";
+  table += "| --- | --- |\n";
+  table += Object.entries(record)
+    .map(([key, value]) => `| ${key} | ${value} |`)
+    .join("\n");
+  return table;
 }
